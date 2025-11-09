@@ -1,0 +1,58 @@
+[gd_scene load_steps=10 format=3 uid="uid://cktc0ikxloprb"]
+
+[ext_resource type="Script" uid="uid://bodmj8o7nmxpe" path="res://scene/guns/bomb/attack_controller.gd" id="1_nt7mx"]
+[ext_resource type="PackedScene" uid="uid://757fsbn3r08w" path="res://scene/guns/bomb/bomb.tscn" id="2_eff0h"]
+[ext_resource type="PackedScene" uid="uid://b4pgqp1hnnqm3" path="res://scene/guns/bears_paw/bears_paw.tscn" id="3_dhg18"]
+[ext_resource type="PackedScene" uid="uid://dxvgg3wglyxpb" path="res://scene/guns/spotlight_ray/spotlight_ray.tscn" id="4_p3rrs"]
+[ext_resource type="PackedScene" uid="uid://dy08kb8arjjdn" path="res://scene/guns/grinder_star/grinder_star.tscn" id="5_bsovi"]
+[ext_resource type="PackedScene" uid="uid://dx8eabs28j1um" path="res://scene/guns/thunderweb/thunderweb.tscn" id="6_6rwe2"]
+[ext_resource type="PackedScene" uid="uid://dfr5q8sptniu8" path="res://scene/guns/blade_yoyo/blade_yoyo.tscn" id="7_gkh8c"]
+[ext_resource type="PackedScene" uid="uid://bfig7j7utq8ga" path="res://scene/guns/groundwave/groundwave.tscn" id="8_hbcs3"]
+[ext_resource type="PackedScene" uid="uid://durbrvx1jg1cx" path="res://scene/guns/frisbee/frisbee.tscn" id="9_48eb2"]
+
+[node name="AttackController" type="Node"]
+script = ExtResource("1_nt7mx")
+bomb = ExtResource("2_eff0h")
+bears_paw = ExtResource("3_dhg18")
+spotlight_ray = ExtResource("4_p3rrs")
+grinder_star = ExtResource("5_bsovi")
+thunderweb = ExtResource("6_6rwe2")
+blade_yoyo = ExtResource("7_gkh8c")
+groundwave = ExtResource("8_hbcs3")
+frisbee = ExtResource("9_48eb2")
+
+[node name="Timer_bears_paw" type="Timer" parent="."]
+wait_time = 2.2
+autostart = true
+
+[node name="Timer_spotlight_raw" type="Timer" parent="."]
+wait_time = 4.4
+autostart = true
+
+[node name="Timer_grinder_star" type="Timer" parent="."]
+wait_time = 5.3
+autostart = true
+
+[node name="Timer_thunderweb" type="Timer" parent="."]
+wait_time = 5.6
+autostart = true
+
+[node name="Timer_blade_yoyo" type="Timer" parent="."]
+wait_time = 2.5
+autostart = true
+
+[node name="Timer_groundwave" type="Timer" parent="."]
+wait_time = 3.8
+autostart = true
+
+[node name="Timer_frisbee" type="Timer" parent="."]
+wait_time = 1.8
+autostart = true
+
+[connection signal="timeout" from="Timer_bears_paw" to="." method="_on_timer_bears_paw_timeout"]
+[connection signal="timeout" from="Timer_spotlight_raw" to="." method="_on_timer_spotlight_raw_timeout"]
+[connection signal="timeout" from="Timer_grinder_star" to="." method="_on_timer_grinder_star_timeout"]
+[connection signal="timeout" from="Timer_thunderweb" to="." method="_on_timer_thunderweb_timeout"]
+[connection signal="timeout" from="Timer_blade_yoyo" to="." method="_on_timer_blade_yoyo_timeout"]
+[connection signal="timeout" from="Timer_groundwave" to="." method="_on_timer_groundwave_timeout"]
+[connection signal="timeout" from="Timer_frisbee" to="." method="_on_timer_frisbee_timeout"]

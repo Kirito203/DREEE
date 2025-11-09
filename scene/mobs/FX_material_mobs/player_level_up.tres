@@ -1,0 +1,29 @@
+[gd_resource type="ParticleProcessMaterial" load_steps=3 format=3 uid="uid://cs8ovfpunropl"]
+
+[sub_resource type="Curve" id="Curve_rkmeh"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.315534, 1), -0.0370169, -0.0370169, 0, 0, Vector2(1, 0.132075), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_732fb"]
+curve = SubResource("Curve_rkmeh")
+
+[resource]
+lifetime_randomness = 1.0
+particle_flag_disable_z = true
+emission_shape = 1
+emission_sphere_radius = 7.62
+inherit_velocity_ratio = 0.04
+spread = 180.0
+initial_velocity_min = 20.0
+initial_velocity_max = 200.0
+angular_velocity_min = -1.60933e-05
+angular_velocity_max = -1.60933e-05
+orbit_velocity_min = 9.49949e-08
+orbit_velocity_max = 9.49949e-08
+gravity = Vector3(0, 0, 0)
+damping_max = 10.0
+scale_max = 2.0
+scale_curve = SubResource("CurveTexture_732fb")
+color = Color(0.926976, 0.951613, 0.999999, 1)
+hue_variation_min = -2.23517e-08
+hue_variation_max = 0.1

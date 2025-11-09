@@ -1,0 +1,87 @@
+[gd_scene load_steps=15 format=3 uid="uid://bh0q2t7j3qb7h"]
+
+[ext_resource type="PackedScene" uid="uid://dkjaeh2f6al3e" path="res://scene/levels/Level_001/Chunks/chunk_generator.tscn" id="1_mvwwc"]
+[ext_resource type="PackedScene" uid="uid://btq4fy5ua2nmw" path="res://scene/player/player.tscn" id="2_oqfqr"]
+[ext_resource type="PackedScene" uid="uid://cugdtqfggtr4x" path="res://scene/levels/Level_001/Chunks/chunk_template_001.tscn" id="2_yt5y6"]
+[ext_resource type="PackedScene" uid="uid://cxr7avd6hkkfb" path="res://scene/levels/Level_001/Chunks/chunk_template_002.tscn" id="3_mvwwc"]
+[ext_resource type="Texture2D" uid="uid://d05srxlq0wtr" path="res://scene/UI/XP/Honor_bar_under.png" id="8_xh8cu"]
+[ext_resource type="PackedScene" uid="uid://dqg1eynftmv2p" path="res://scene/levels/Menu/level_up_screen.tscn" id="9_12d63"]
+[ext_resource type="Texture2D" uid="uid://sqho08n5288w" path="res://scene/UI/XP/Honor_bar_over.png" id="9_hso7i"]
+[ext_resource type="Texture2D" uid="uid://8h1ivp8n5277" path="res://scene/UI/HP/HP2_under.png" id="9_jmnj1"]
+[ext_resource type="Texture2D" uid="uid://d4lsby3vjdtat" path="res://scene/UI/HP/HP2_over.png" id="10_b0rlp"]
+[ext_resource type="Texture2D" uid="uid://3jxs0e671gmx" path="res://scene/UI/XP/Honor_bar_progress.png" id="10_d68tj"]
+[ext_resource type="Texture2D" uid="uid://ce4wagk56f0ml" path="res://scene/UI/HP/HP2_progress.png" id="11_vdm5l"]
+[ext_resource type="Script" uid="uid://0txbaqt0632c" path="res://scene/levels/xp_tex.gd" id="12_b0rlp"]
+[ext_resource type="Script" uid="uid://cpoj43w1oc6sh" path="res://scene/levels/hp_tex.gd" id="12_jmnj1"]
+
+[sub_resource type="Environment" id="Environment_vdm5l"]
+background_mode = 3
+glow_enabled = true
+glow_intensity = 8.0
+
+[node name="Level_001" type="Node"]
+
+[node name="Enviroments" type="Node" parent="."]
+
+[node name="ChunkGenerator" parent="Enviroments" instance=ExtResource("1_mvwwc")]
+visible = false
+chunk_variants = Array[PackedScene]([ExtResource("2_yt5y6"), ExtResource("3_mvwwc")])
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Enviroments"]
+environment = SubResource("Environment_vdm5l")
+
+[node name="Player" type="Node" parent="."]
+
+[node name="Player" parent="Player" instance=ExtResource("2_oqfqr")]
+position = Vector2(320, 180)
+
+[node name="MobsPool" type="Node" parent="."]
+
+[node name="EyeBallPool" type="Node" parent="MobsPool"]
+
+[node name="PickUpElements" type="Node" parent="."]
+
+[node name="Light" type="Node" parent="."]
+
+[node name="DirectionalLight2D" type="DirectionalLight2D" parent="Light"]
+blend_mode = 1
+range_layer_max = 1
+
+[node name="FX" type="Node" parent="."]
+
+[node name="UI" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="XP_tex" type="TextureProgressBar" parent="UI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -450.0
+offset_top = -48.0
+offset_right = 450.0
+grow_horizontal = 2
+grow_vertical = 0
+texture_under = ExtResource("8_xh8cu")
+texture_over = ExtResource("9_hso7i")
+texture_progress = ExtResource("10_d68tj")
+script = ExtResource("12_b0rlp")
+
+[node name="HP_tex" type="TextureProgressBar" parent="UI"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -128.0
+offset_right = 128.0
+offset_bottom = 48.0
+grow_horizontal = 2
+value = 50.0
+texture_under = ExtResource("9_jmnj1")
+texture_over = ExtResource("10_b0rlp")
+texture_progress = ExtResource("11_vdm5l")
+tint_progress = Color(0.99004, 0, 0.00301664, 1)
+script = ExtResource("12_jmnj1")
+
+[node name="LevelUpScreen" parent="." instance=ExtResource("9_12d63")]
+visible = false

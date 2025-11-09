@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3 uid="uid://dx8eabs28j1um"]
+
+[ext_resource type="Script" uid="uid://dxxht0ongx38t" path="res://scene/guns/thunderweb/thunderweb.gd" id="1_a47lb"]
+[ext_resource type="PackedScene" uid="uid://32qfkdq40gae" path="res://scene/guns/thunderweb/lighting_segment.tscn" id="2_nfr4p"]
+
+[node name="Thunderweb" type="Node2D"]
+script = ExtResource("1_a47lb")
+lightning_segment_scene = ExtResource("2_nfr4p")

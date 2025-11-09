@@ -1,0 +1,79 @@
+[gd_scene load_steps=5 format=3 uid="uid://bvxigrohwka3m"]
+
+[ext_resource type="Script" uid="uid://cjalbn0ohlcmd" path="res://scene/levels/Menu/upgrade_card.gd" id="1_mrmiw"]
+[ext_resource type="Texture2D" uid="uid://c2xxoiun4v303" path="res://resources/sprites/guns/BearsPaw_001_icon.png" id="2_qggu5"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_661sr"]
+bg_color = Color(0.15, 0.15, 0.15, 0.858824)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.31, 0.31, 0.31, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qggu5"]
+texture = ExtResource("2_qggu5")
+
+[node name="UpgradeCard" type="Panel"]
+custom_minimum_size = Vector2(200, 0)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_661sr")
+script = ExtResource("1_mrmiw")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -95.0
+offset_top = -107.5
+offset_right = 95.0
+offset_bottom = 107.5
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="SkillName_001" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "Медвежья лапа"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxTexture_qggu5")
+
+[node name="SkillDescription_001" type="Label" parent="VBoxContainer"]
+custom_minimum_size = Vector2(170, 120)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 8
+text = "Могучая медвежья лапа взмывает вперёд, нанося размашистый удар по врагам перед собой.
+Сбивает слабых противников с ног и оставляет за собой кровавый след.
+"
+horizontal_alignment = 1
+autowrap_mode = 2
+text_overrun_behavior = 2
+
+[node name="Button_001" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "ОК"

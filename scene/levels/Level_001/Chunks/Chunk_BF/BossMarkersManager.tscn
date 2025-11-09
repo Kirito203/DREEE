@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://ctdvx0dpv1lta"]
+
+[ext_resource type="Script" uid="uid://dnq6wmdi23dg5" path="res://scene/levels/Level_001/Chunks/Chunk_BF/boss_markers_manager.gd" id="1_qoosl"]
+
+[node name="BossMarkersManager" type="Node2D"]
+script = ExtResource("1_qoosl")

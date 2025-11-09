@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://diwxu7fpoaiwi"]
+
+[ext_resource type="Script" uid="uid://b5msfefnyenlv" path="res://scene/mobs/enemy_spawner/enemy_mob_pool.gd" id="1_qtk0w"]
+
+[node name="EnemyMobPool" type="Node2D"]
+script = ExtResource("1_qtk0w")

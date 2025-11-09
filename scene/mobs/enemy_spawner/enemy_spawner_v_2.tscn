@@ -1,0 +1,54 @@
+[gd_scene load_steps=4 format=3 uid="uid://cukhxx3qae5ry"]
+
+[ext_resource type="Script" uid="uid://ngxi5buptuf4" path="res://scene/mobs/enemy_spawner/enemy_spawner_v_2.gd" id="1_kiwo8"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_f1hre"]
+size = Vector2(400, 1200)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_kiwo8"]
+radius = 535.113
+
+[node name="Enemy_spawner_v2" type="Node2D"]
+script = ExtResource("1_kiwo8")
+
+[node name="Area_spawn_wave_01" type="Area2D" parent="."]
+
+[node name="CollisionShape2D_001" type="CollisionShape2D" parent="Area_spawn_wave_01"]
+position = Vector2(-800, 0)
+shape = SubResource("RectangleShape2D_f1hre")
+
+[node name="CollisionShape2D_002" type="CollisionShape2D" parent="Area_spawn_wave_01"]
+position = Vector2(800, 0)
+shape = SubResource("RectangleShape2D_f1hre")
+
+[node name="CollisionShape2D_003" type="CollisionShape2D" parent="Area_spawn_wave_01"]
+position = Vector2(0, -800)
+rotation = -1.5708
+shape = SubResource("RectangleShape2D_f1hre")
+
+[node name="CollisionShape2D_004" type="CollisionShape2D" parent="Area_spawn_wave_01"]
+position = Vector2(0, 800)
+rotation = -1.5708
+shape = SubResource("RectangleShape2D_f1hre")
+
+[node name="Timer_create_wave_01" type="Timer" parent="Area_spawn_wave_01"]
+wait_time = 5.0
+one_shot = true
+autostart = true
+
+[node name="Timer_spawn_wave_01" type="Timer" parent="Area_spawn_wave_01"]
+wait_time = 3.0
+
+[node name="Area_spawn_wave_02" type="Area2D" parent="."]
+
+[node name="Radial_001_wave_02" type="CollisionShape2D" parent="Area_spawn_wave_02"]
+shape = SubResource("CircleShape2D_kiwo8")
+
+[node name="Timer_create_wave_02" type="Timer" parent="Area_spawn_wave_02"]
+wait_time = 60.0
+
+[node name="Timer_spawn_wave_02" type="Timer" parent="Area_spawn_wave_02"]
+wait_time = 10.0
+
+[connection signal="timeout" from="Area_spawn_wave_01/Timer_create_wave_01" to="." method="_on_timer_create_wave_01_timeout"]
+[connection signal="timeout" from="Area_spawn_wave_02/Timer_create_wave_02" to="." method="_on_timer_create_wave_02_timeout"]

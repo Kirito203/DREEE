@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dkjaeh2f6al3e"]
+
+[ext_resource type="Script" uid="uid://cjrnrjkrocnb4" path="res://scene/levels/Level_001/Chunks/chunk_generator.gd" id="1_81sj8"]
+
+[node name="ChunkGenerator" type="Node2D"]
+script = ExtResource("1_81sj8")

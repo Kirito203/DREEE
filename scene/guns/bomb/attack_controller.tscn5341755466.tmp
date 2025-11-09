@@ -1,0 +1,22 @@
+[gd_scene load_steps=5 format=3 uid="uid://cktc0ikxloprb"]
+
+[ext_resource type="Script" uid="uid://bodmj8o7nmxpe" path="res://scene/guns/bomb/attack_controller.gd" id="1_nt7mx"]
+[ext_resource type="PackedScene" uid="uid://757fsbn3r08w" path="res://scene/guns/bomb/bomb.tscn" id="2_eff0h"]
+[ext_resource type="PackedScene" uid="uid://b4pgqp1hnnqm3" path="res://scene/guns/bears_paw/bears_paw.tscn" id="3_dhg18"]
+[ext_resource type="PackedScene" uid="uid://dxvgg3wglyxpb" path="res://scene/guns/spotlight_ray/spotlight_ray.tscn" id="4_p3rrs"]
+
+[node name="AttackController" type="Node"]
+script = ExtResource("1_nt7mx")
+bomb = ExtResource("2_eff0h")
+bears_paw = ExtResource("3_dhg18")
+spotlight_ray = ExtResource("4_p3rrs")
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 2.0
+
+[node name="Timer_spotlight_raw" type="Timer" parent="."]
+wait_time = 2.0
+autostart = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
+[connection signal="timeout" from="Timer_spotlight_raw" to="." method="_on_timer_spotlight_raw_timeout"]

@@ -1,0 +1,239 @@
+[gd_scene load_steps=16 format=3 uid="uid://dxvgg3wglyxpb"]
+
+[ext_resource type="Texture2D" uid="uid://dvii6olwbpnfb" path="res://scene/guns/spotlight_ray/spotlight_raw_001.png" id="1_oiesc"]
+[ext_resource type="Script" uid="uid://ba2mpsvs18fkg" path="res://scene/guns/spotlight_ray/spotlight_ray.gd" id="1_orqvw"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_orqvw"]
+size = Vector2(320, 12)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3akjw"]
+atlas = ExtResource("1_oiesc")
+region = Rect2(0, 0, 32, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hdrpg"]
+atlas = ExtResource("1_oiesc")
+region = Rect2(32, 0, 32, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xds4a"]
+atlas = ExtResource("1_oiesc")
+region = Rect2(96, 0, 32, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2a3r8"]
+atlas = ExtResource("1_oiesc")
+region = Rect2(128, 0, 32, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_skwt8"]
+atlas = ExtResource("1_oiesc")
+region = Rect2(160, 0, 32, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xvdw7"]
+atlas = ExtResource("1_oiesc")
+region = Rect2(192, 0, 32, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_oiesc"]
+atlas = ExtResource("1_oiesc")
+region = Rect2(224, 0, 32, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_orqvw"]
+atlas = ExtResource("1_oiesc")
+region = Rect2(256, 0, 32, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_rjl5d"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3akjw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hdrpg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xds4a")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2a3r8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_skwt8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xvdw7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xvdw7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_oiesc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_orqvw")
+}],
+"loop": true,
+"name": &"attack",
+"speed": 5.0
+}]
+
+[sub_resource type="Animation" id="Animation_oiesc"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0.5, 0.15625)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(8, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("AnimatedSprite2D:modulate")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0.690196)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Hit_box_Spotlight_ray:disabled")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+
+[sub_resource type="Animation" id="Animation_3akjw"]
+length = 1.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.366667, 0.433333, 0.5, 0.8, 0.9, 0.966667, 1.03333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3, 6, 2, 7, 8]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": ["attack"]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("AnimatedSprite2D:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0.2, 0.156), Vector2(0.5, 0.375), Vector2(10, 0.5)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("AnimatedSprite2D:position")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(23, 0), Vector2(28, 0), Vector2(180, 0)]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("AnimatedSprite2D:modulate")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0.2, 0.4, 0.5, 0.8, 0.933333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0.168627), Color(1, 1, 1, 0.584314), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0.690196)]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Hit_box_Spotlight_ray:disabled")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.366667, 0.9),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [true, false, true]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_hdrpg"]
+_data = {
+&"RESET": SubResource("Animation_oiesc"),
+&"attack": SubResource("Animation_3akjw")
+}
+
+[node name="spotlight_ray" type="Node2D"]
+script = ExtResource("1_orqvw")
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 18
+
+[node name="Hit_box_Spotlight_ray" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(180, 0)
+shape = SubResource("RectangleShape2D_orqvw")
+disabled = true
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Area2D"]
+modulate = Color(1, 1, 1, 0.690196)
+position = Vector2(8, 0)
+scale = Vector2(0.5, 0.15625)
+sprite_frames = SubResource("SpriteFrames_rjl5d")
+animation = &"attack"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Area2D"]
+libraries = {
+&"": SubResource("AnimationLibrary_hdrpg")
+}
+autoplay = "attack"
+
+[node name="Timer" type="Timer" parent="Area2D"]
+wait_time = 1.1
+one_shot = true
+autostart = true
+
+[connection signal="area_entered" from="Area2D" to="." method="_on_area_2d_area_entered"]
+[connection signal="timeout" from="Area2D/Timer" to="." method="_on_timer_timeout"]

@@ -1,0 +1,51 @@
+[gd_scene load_steps=7 format=3 uid="uid://757fsbn3r08w"]
+
+[ext_resource type="Texture2D" uid="uid://2wowsv0gux41" path="res://scene/guns/bomb/Bomb_Idle.png" id="1_jn4ns"]
+[ext_resource type="Script" uid="uid://b1knsdx4v0gn8" path="res://scene/guns/bomb/bomb.gd" id="1_mj32e"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mj32e"]
+atlas = ExtResource("1_jn4ns")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kkpbi"]
+atlas = ExtResource("1_jn4ns")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hssh5"]
+atlas = ExtResource("1_jn4ns")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_5vfxx"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mj32e")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kkpbi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hssh5")
+}],
+"loop": true,
+"name": &"Idle",
+"speed": 10.0
+}]
+
+[node name="Bomb" type="Node2D"]
+script = ExtResource("1_mj32e")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -6)
+scale = Vector2(0.5625, 0.5625)
+sprite_frames = SubResource("SpriteFrames_5vfxx")
+animation = &"Idle"
+autoplay = "Idle"
+frame_progress = 0.0135696
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 1.6
+one_shot = true
+autostart = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

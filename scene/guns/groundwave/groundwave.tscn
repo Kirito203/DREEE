@@ -1,0 +1,142 @@
+[gd_scene load_steps=14 format=3 uid="uid://bfig7j7utq8ga"]
+
+[ext_resource type="Script" uid="uid://dy1c5l1ot0kxo" path="res://scene/guns/groundwave/groundwave.gd" id="1_8kfsf"]
+[ext_resource type="Texture2D" uid="uid://2hg3lvsepfbi" path="res://scene/guns/groundwave/Groundwave5.png" id="2_f6rdw"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_oo8y4"]
+radius = 37.6563
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ug0ui"]
+atlas = ExtResource("2_f6rdw")
+region = Rect2(0, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t0b3s"]
+atlas = ExtResource("2_f6rdw")
+region = Rect2(128, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i76pt"]
+atlas = ExtResource("2_f6rdw")
+region = Rect2(256, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_usolh"]
+atlas = ExtResource("2_f6rdw")
+region = Rect2(384, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c1vdm"]
+atlas = ExtResource("2_f6rdw")
+region = Rect2(512, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7q3n2"]
+atlas = ExtResource("2_f6rdw")
+region = Rect2(640, 0, 128, 128)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_chx4e"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ug0ui")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t0b3s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i76pt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_usolh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c1vdm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7q3n2")
+}],
+"loop": false,
+"name": &"Attack_05",
+"speed": 30.0
+}]
+
+[sub_resource type="Animation" id="Animation_8lsi8"]
+length = 0.2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.0333333, 0.0666667, 0.1, 0.133333, 0.166667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3, 4, 5]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": ["Attack_05"]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("CollisionShape2D:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.0333333, 0.0666667, 0.1, 0.133333, 0.166667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [Vector2(1.475, 1.475), Vector2(1.645, 1.645), Vector2(2.01, 2.01), Vector2(2.235, 2.235), Vector2(2.575, 2.575), Vector2(2.375, 2.375)]
+}
+
+[sub_resource type="Animation" id="Animation_xywgb"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CollisionShape2D:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_guwuj"]
+_data = {
+&"Attack_05": SubResource("Animation_8lsi8"),
+&"RESET": SubResource("Animation_xywgb")
+}
+
+[node name="Groundwave" type="Node2D"]
+script = ExtResource("1_8kfsf")
+
+[node name="HitBoxGroundwave" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitBoxGroundwave"]
+shape = SubResource("CircleShape2D_oo8y4")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="HitBoxGroundwave"]
+scale = Vector2(1.5, 1.5)
+sprite_frames = SubResource("SpriteFrames_chx4e")
+animation = &"Attack_05"
+autoplay = "Attack_05"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="HitBoxGroundwave"]
+libraries = {
+&"": SubResource("AnimationLibrary_guwuj")
+}
+autoplay = "Attack_05"
+
+[connection signal="area_entered" from="HitBoxGroundwave" to="." method="_on_hit_box_groundwave_area_entered"]
+[connection signal="animation_finished" from="HitBoxGroundwave/AnimationPlayer" to="." method="_on_animation_player_animation_finished"]
