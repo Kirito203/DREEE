@@ -111,11 +111,11 @@ func apply_knockback(dir: Vector2, force: float) -> void: # отбрасыван
 	knock_dir = dir.normalized() # задаём направление
 	knock_speed = force # задаём силу
 
-func _on_visible_on_screen_notifier_2d_screen_exited() -> void:
+func _on_visible_on_screen_notifier_2d_screen_exited() -> void: #удаляем за пределами камеры
 	queue_free() # удаляем моба
 
 
-func _on_collision_area_body_entered(body: CharacterBody2D) -> void:
+func _on_collision_area_body_entered(body: CharacterBody2D) -> void: #Чтобы не нсалаивались мобы
 	pass
 
 func stop_or_exit():

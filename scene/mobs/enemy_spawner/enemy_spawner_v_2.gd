@@ -11,8 +11,8 @@ extends Node2D
 @onready var timer_spawn_wave_01 = $Area_spawn_wave_01/Timer_spawn_wave_01
 @onready var timer_create_wave_01 = $Area_spawn_wave_01/Timer_create_wave_01
 
-var count_mob_spawn_rectangle = 20
-var count_wave_rect1 = 2
+@export var count_mob_spawn_rectangle = 20
+@export var count_wave_rect1 = 2
 
 var max_count_mobs : int = GameStats.enemy_spawner["max_count_mobs"]
 var count_mobs_in_screen: int = GameStats.enemy_spawner["count_mobs_in_screen"]
