@@ -20,7 +20,7 @@ func setup(direction: Vector2, owner: Node2D) -> void: # инициализац�
 func _ready() -> void: # при входе в сцену
 	if frisbee_area: frisbee_area.area_entered.connect(_on_frisbee_area_entered) # подписываемся на вход в нашу Area2D
 	if lifetime_timer: lifetime_timer.one_shot = true # одно срабатывание таймера
-	if lifetime_timer: lifetime_timer.timeout.connect(_on_timer_timeout) # подключаем сигнал таймера
+
 
 func _physics_process(delta: float) -> void: # кадр физики
 	if _dir == Vector2.ZERO: return # если направление ноль, ничего не делаем
