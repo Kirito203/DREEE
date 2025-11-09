@@ -2,7 +2,7 @@ extends Node
 
 @export var mob_scene: PackedScene = preload("res://scene/mobs/eye_ball/eye_ball_v2.tscn")
 
-var pool_size: int = 20
+@export var pool_size: int = 20
 var pool: Array[CharacterBody2D] = []
 var initialized: bool = false
 
