@@ -1,8 +1,8 @@
 extends Node
 
 @export var mob_scene: PackedScene = preload("res://scene/mobs/eye_ball/eye_ball_v2.tscn")
-@export var pool_size: int = 40
 
+@export var pool_size: int = 20
 var pool: Array[CharacterBody2D] = []
 var initialized: bool = false
 
@@ -17,8 +17,8 @@ func _create_pool_deferred() -> void:
 	while created < pool_size:
 		var to_create: int = min(batch_size, pool_size - created)
 		for i in range(to_create):
-			var mob: CharacterBody2D = _instantiate_mob()
-			_prepare_for_pool(mob)
+			var mob := _instantiate_mob()
+			_deactivate_mob(mob)
 			pool.append(mob)
 		created += to_create
 		await get_tree().process_frame
@@ -27,42 +27,36 @@ func _create_pool_deferred() -> void:
 func _instantiate_mob() -> CharacterBody2D:
 	return mob_scene.instantiate() as CharacterBody2D
 
-# Выдать моба из пула
+# Выдать моба из пула (без добавления в дерево)
 func get_mob() -> CharacterBody2D:
 	var mob: CharacterBody2D
 	if pool.is_empty():
 		mob = _instantiate_mob()
 	else:
 		mob = pool.pop_back()
-	_activate_for_spawn(mob)
+	_activate_mob(mob)
 	return mob
 
-# Вернуть моба обратно в пул
+# Вернуть моба обратно в пул (спавнер или сам моб вызывает)
 func return_pool(mob: CharacterBody2D) -> void:
-	_prepare_for_pool(mob)
+	_deactivate_mob(mob)
 	pool.append(mob)
 
-# Отложенное добавление в дерево и установка позиции
-func place_mob_deferred(parent: Node, world_pos: Vector2, mob: CharacterBody2D) -> void:
-	if parent == null or mob == null:
-		return
-	mob.global_position = world_pos
-	call_deferred("_add_to_parent", parent, mob)
-
-func _add_to_parent(parent: Node, mob: CharacterBody2D) -> void:
-	if mob.get_parent() != null:
-		mob.get_parent().remove_child(mob)
+# Удобный метод: сразу добавить моба в parent и выставить позицию
+func get_and_add_mob(parent: Node, world_pos: Vector2) -> CharacterBody2D:
+	var mob := get_mob()
+	if mob == null or parent == null:
+		return null
 	parent.add_child(mob)
-	# включаем логику после кадра (моб должен иметь метод on_spawn_activated)
-	mob.call_deferred("on_spawn_activated")
+	mob.global_position = world_pos
+	return mob
 
-# Внутренние состояния
-func _activate_for_spawn(mob: CharacterBody2D) -> void:
+func _activate_mob(mob: CharacterBody2D) -> void:
 	mob.visible = true
-	mob.set_process(false)
-	mob.set_physics_process(false)
+	mob.set_process(true)
+	mob.set_physics_process(true)
 
-func _prepare_for_pool(mob: CharacterBody2D) -> void:
+func _deactivate_mob(mob: CharacterBody2D) -> void:
 	mob.set_process(false)
 	mob.set_physics_process(false)
 	mob.visible = false
