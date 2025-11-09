@@ -1,41 +1,60 @@
 extends Node2D
 
 @export var eye_ball_folder: NodePath
+@export var mob_eye_ball_01: PackedScene = preload("res://scene/mobs/eye_ball/eye_ball.tscn")
 
-@export var mob_eye_ball_01 : PackedScene = preload("res://scene/mobs/eye_ball/eye_ball.tscn") #предзагрузка файла моба
-var eye_ball_pool_size : int = 20 # кол-во заготовленных мобов
-var eye_ball_pool: Array = [] #массив свободных мобов
-var eye_ball_pool_done = false
+var eye_ball_pool_size: int = 20
+var eye_ball_pool: Array[CharacterBody2D] = []
+var eye_ball_pool_done: bool = false
 
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	pass
+	_create_pool_deferred()
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	if eye_ball_pool_done == true:
-		pass
-	else:
-		var folder = get_node(eye_ball_folder) #Переводим папку в папку, чтобы код нашел путь
-		for i in eye_ball_pool_size: #Создаем заранее всех мобов
-			var mob = mob_eye_ball_01.instantiate()
+func _create_pool_deferred() -> void:
+	if eye_ball_pool_done:
+		return
+	var folder: Node = get_node(eye_ball_folder) as Node
+	var batch_size: int = 10
+	var created: int = 0
+	while created < eye_ball_pool_size:
+		var to_create: int = min(batch_size, eye_ball_pool_size - created)
+		for i in range(to_create):
+			var mob: CharacterBody2D = mob_eye_ball_01.instantiate() as CharacterBody2D
 			mob.set_process(false)
 			mob.set_physics_process(false)
-			mob.show() 
-			mob.hide() #отключаем видимость у моба
-			folder.add_child(mob) #создаем моба, пока держим внутри пулла
-			eye_ball_pool.append(mob) #кладем в список
-		var eye_ball_pool_done = true
+			mob.hide()
+			folder.call_deferred("add_child", mob)
+			eye_ball_pool.append(mob)
+		created += to_create
+		await get_tree().process_frame
+	eye_ball_pool_done = true
 
-func get_mob():
-	if eye_ball_pool.is_empty(): #проверка, если архив пустой, ничего не передаем
-		return null
-	var mob = eye_ball_pool.pop_back()
-	mob.visible = true
+func get_mob() -> CharacterBody2D:
+	if eye_ball_pool.is_empty():
+		return _expand_and_get()
+	var mob: CharacterBody2D = eye_ball_pool.pop_back() as CharacterBody2D
+	_activate_mob(mob)
 	return mob
 
-func return_pool(mob: CharacterBody2D):
+func return_pool(mob: CharacterBody2D) -> void:
+	_deactivate_mob(mob)
 	eye_ball_pool.append(mob)
+
+func _activate_mob(mob: CharacterBody2D) -> void:
+	mob.visible = true
+	mob.set_process(true)
+	mob.set_physics_process(true)
+
+func _deactivate_mob(mob: CharacterBody2D) -> void:
 	mob.set_process(false)
 	mob.set_physics_process(false)
 	mob.hide()
+	mob.global_position = Vector2.ZERO
+
+func _expand_and_get() -> CharacterBody2D:
+	var folder: Node = get_node(eye_ball_folder) as Node
+	var mob: CharacterBody2D = mob_eye_ball_01.instantiate() as CharacterBody2D
+	mob.hide()
+	folder.add_child(mob)
+	_activate_mob(mob)
+	return mob

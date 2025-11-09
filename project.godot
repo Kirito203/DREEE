@@ -73,6 +73,10 @@ down={
 2d_physics/layer_5="HitArea"
 2d_physics/layer_6="HurtArea"
 
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0

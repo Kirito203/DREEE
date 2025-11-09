@@ -128,3 +128,6 @@ func apply_knockback(dir: Vector2, force: float) -> void: # отбрасыван
 	is_knockback = true # включаем нок
 	knock_dir = dir.normalized() # задаём направление
 	knock_speed = force # задаём силу
+
+func _on_visible_on_screen_notifier_2d_screen_exited() -> void:
+	queue_free() # удаляем моба
