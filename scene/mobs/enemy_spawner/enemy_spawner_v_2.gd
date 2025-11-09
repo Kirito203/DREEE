@@ -35,7 +35,7 @@ var count_mobs_in_screen: int = int(GameStats.enemy_spawner["count_mobs_in_scree
 @export var count_wave_rad2: int = 5
 
 # Настройка батча: сколько мобов спавним за один кадр при создании волны
-@export const SPAWN_BATCH_SIZE: int = 6
+const SPAWN_BATCH_SIZE: int = 6
 
 # Спавнит моба через пул; обновляет GameStats
 func spawn_mob(world_spawn_point: Vector2) -> void:
