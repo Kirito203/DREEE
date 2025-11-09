@@ -351,7 +351,8 @@ _data = {
 &"Run": SubResource("Animation_xj6y1")
 }
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_mwsu7"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_mwsu7"]
+radius = 4.031129
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_2lwiy"]
 
@@ -371,6 +372,7 @@ explosiveness = 1.0
 process_material = ExtResource("2_ipx4b")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+visible = false
 position = Vector2(0, -7)
 shape = SubResource("CircleShape2D_liito")
 
@@ -387,22 +389,28 @@ libraries = {
 autoplay = "Run"
 
 [node name="CollisionArea" type="Area2D" parent="."]
-visible = false
 collision_layer = 2
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CollisionArea"]
-visible = false
 position = Vector2(0, -7)
 scale = Vector2(2, 2)
-shape = SubResource("RectangleShape2D_mwsu7")
+shape = SubResource("CircleShape2D_mwsu7")
 
 [node name="HitBox" type="Area2D" parent="."]
+visible = false
 collision_layer = 18
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HitBox"]
+visible = false
 position = Vector2(0, -7)
 scale = Vector2(0.7, 0.7)
 shape = SubResource("CircleShape2D_2lwiy")
 
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
+visible = false
+position = Vector2(0, -7)
+rect = Rect2(-6, -7, 12, 14)
+
 [connection signal="body_entered" from="CollisionArea" to="." method="_on_collision_area_body_entered"]
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]

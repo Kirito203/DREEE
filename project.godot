@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 GameStats="*res://scripts/global_scripts/GameStats.gd"
 LevelUpManager="*res://scripts/global_scripts/LevelUpManager.gd"
 Preloads="*res://scripts/global_scripts/Preloads.gd"
+MobPool="*res://scene/mobs/enemy_spawner/enemy_mob_pool.gd"
 
 [debug]
 
@@ -81,3 +82,4 @@ down={
 
 textures/canvas_textures/default_texture_filter=0
 viewport/hdr_2d=true
+occlusion_culling/use_occlusion_culling=true
