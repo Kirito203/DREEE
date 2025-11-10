@@ -50,5 +50,7 @@ wait_time = 60.0
 [node name="Timer_spawn_wave_02" type="Timer" parent="Area_spawn_wave_02"]
 wait_time = 10.0
 
+[node name="MobsContainer" type="Node" parent="."]
+
 [connection signal="timeout" from="Area_spawn_wave_01/Timer_create_wave_01" to="." method="_on_timer_create_wave_01_timeout"]
 [connection signal="timeout" from="Area_spawn_wave_02/Timer_create_wave_02" to="." method="_on_timer_create_wave_02_timeout"]

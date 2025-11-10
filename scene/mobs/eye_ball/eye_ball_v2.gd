@@ -9,9 +9,9 @@ extends CharacterBody2D
 @onready var visible_notifier: VisibleOnScreenNotifier2D = $VisibleOnScreenNotifier2D
 
 # --- Статы из GameStats ---
-var max_speed: float = float(GameStats.stats_eye_ball["max_speed"])
-var health: int = int(GameStats.stats_eye_ball["max_health"])
-var damage: int = int(GameStats.stats_eye_ball["damage"])
+var max_speed: float = 80.0
+var health: int = 100
+var damage: int = 0
 
 # --- Состояния ---
 enum State { IDLE, RUN, HIT, DEATH }
@@ -32,8 +32,16 @@ var tick_slot: int = randi() % 3 # моб обновляет AI 1 раз в 3 к
 var tick_counter: int = 0
 
 func _ready() -> void:
+	_update_stats_from_gamestats()
 	if player_ref == null:
 		player_ref = get_tree().get_first_node_in_group("Player") as Node2D
+
+func _update_stats_from_gamestats() -> void:
+	# Берем статы напрямую из GameStats
+	if GameStats and GameStats.stats_eye_ball:
+		max_speed = float(GameStats.stats_eye_ball["max_speed"])
+		health = int(GameStats.stats_eye_ball["max_health"])
+		damage = int(GameStats.stats_eye_ball["damage"])
 
 # Включается из пула через call_deferred после add_child
 func on_spawn_activated() -> void:
@@ -50,6 +58,8 @@ func on_spawn_activated() -> void:
 		hitbox_collision.disabled = false
 	if anim_player:
 		anim_player.stop()
+	
+	print("Mob activated at position: ", global_position)
 
 func _physics_process(delta: float) -> void:
 	# Усыпление по дистанции до игрока
@@ -184,13 +194,12 @@ func _on_visible_on_screen_notifier_2d_screen_exited() -> void:
 
 func _despawn_or_free() -> void:
 	# уменьшить счётчик мобов
-	var es = GameStats.enemy_spawner
-	if typeof(es) == TYPE_DICTIONARY and es.has("count_mobs_in_screen"):
-		es["count_mobs_in_screen"] = max(0, int(es["count_mobs_in_screen"]) - 1)
-		GameStats.enemy_spawner = es
+	if GameStats and GameStats.enemy_spawner and GameStats.enemy_spawner.has("count_mobs_in_screen"):
+		GameStats.enemy_spawner["count_mobs_in_screen"] = max(0, int(GameStats.enemy_spawner["count_mobs_in_screen"]) - 1)
+		print("Mob despawned. Total mobs: ", GameStats.enemy_spawner["count_mobs_in_screen"])
 
 	# вернуть в пул
-	if Engine.has_singleton("MobPool") and MobPool != null and MobPool.has_method("return_pool"):
+	if MobPool and MobPool.has_method("return_pool"):
 		if get_parent():
 			get_parent().remove_child(self)
 		MobPool.return_pool(self)
@@ -199,7 +208,7 @@ func _despawn_or_free() -> void:
 		queue_free()
 
 func _reset_for_reuse() -> void:
-	health = int(GameStats.stats_eye_ball["max_health"])
+	_update_stats_from_gamestats()
 	death_flag = false
 	invincible = false
 	is_knockback = false

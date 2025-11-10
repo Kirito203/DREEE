@@ -22,8 +22,8 @@ extends Node2D
 @export var count_wave_rect1: int = 2
 
 # Ограничение общего числа мобов и текущий счётчик (берём из GameStats)
-var max_count_mobs : int = int(GameStats.enemy_spawner["max_count_mobs"])
-var count_mobs_in_screen: int = int(GameStats.enemy_spawner["count_mobs_in_screen"])
+var max_count_mobs : int = 200
+var count_mobs_in_screen: int = 0
 
 # Зоны для волны 2 (радиальная)
 @onready var area_wave_02 = $Area_spawn_wave_02
@@ -37,11 +37,39 @@ var count_mobs_in_screen: int = int(GameStats.enemy_spawner["count_mobs_in_scree
 # Настройка батча: сколько мобов спавним за один кадр при создании волны
 const SPAWN_BATCH_SIZE: int = 6
 
+# --- Optimization Settings ---
+@export_category("Spawn Optimization")
+@export var max_spawns_per_frame: int = 5
+@export var enable_dynamic_spawning: bool = false  # Временно отключаем для теста
+
+var current_spawns_this_frame: int = 0
+
+func _ready() -> void:
+	# Инициализация статов
+	_update_stats_from_gamestats()
+
+func _update_stats_from_gamestats() -> void:
+	# Берем статы напрямую из GameStats
+	if GameStats and GameStats.enemy_spawner:
+		max_count_mobs = int(GameStats.enemy_spawner["max_count_mobs"])
+		count_mobs_in_screen = int(GameStats.enemy_spawner["count_mobs_in_screen"])
+
+func _process(_delta):
+	# Сбрасываем счетчик спавнов каждый кадр
+	current_spawns_this_frame = 0
+
 # Спавнит моба через пул; обновляет GameStats
 func spawn_mob(world_spawn_point: Vector2) -> void:
+	# Лимит на спавн в одном кадре
+	if current_spawns_this_frame >= max_spawns_per_frame:
+		print("Spawn limit reached for this frame")
+		return
+	
 	# Берём актуальный счётчик из GameStats (источник истины)
-	count_mobs_in_screen = int(GameStats.enemy_spawner["count_mobs_in_screen"])
+	_update_stats_from_gamestats()
+	
 	if count_mobs_in_screen >= max_count_mobs:
+		print("Max mobs limit reached: ", count_mobs_in_screen, "/", max_count_mobs)
 		return
 
 	# parent — контейнер для мобов; если его нет — используем текущую сцену
@@ -50,6 +78,7 @@ func spawn_mob(world_spawn_point: Vector2) -> void:
 	# Берём моба из пула и сразу добавляем в parent на нужную позицию
 	var mob := mob_pool.get_and_add_mob(parent, world_spawn_point)
 	if mob == null:
+		print("Failed to get mob from pool")
 		return
 
 	# Помечаем как врага (группы удобны для поиска/логики)
@@ -58,13 +87,19 @@ func spawn_mob(world_spawn_point: Vector2) -> void:
 	# Обновляем счётчик в GameStats
 	count_mobs_in_screen += 1
 	GameStats.enemy_spawner["count_mobs_in_screen"] = count_mobs_in_screen
+	current_spawns_this_frame += 1
+	
+	print("Spawned mob at: ", world_spawn_point, " Total mobs: ", count_mobs_in_screen)
 
 # Создаёт точки спавна равномерно внутри прямоугольника; распределяет нагрузку по кадрам
 func create_rectangle_wave(rectangle_spawn: CollisionShape2D) -> void:
 	var rect: RectangleShape2D = rectangle_spawn.shape
 	if rect == null:
+		print("No rectangle shape found")
 		return
 
+	print("Creating rectangle wave with shape: ", rect.size)
+	
 	var half: Vector2 = rect.size * 0.5
 	var c_x: int = 3
 	var c_y: int = int(ceil(float(count_mob_spawn_rectangle) / float(c_x)))
@@ -94,7 +129,11 @@ func create_rectangle_wave(rectangle_spawn: CollisionShape2D) -> void:
 
 # Обрабатывает таймер создания волны 1 — последовательно создаёт c_x зон и ждёт между партиями
 func _on_timer_create_wave_01_timeout() -> void:
+	print("Wave 1 timer triggered")
+	
 	for i in range(count_wave_rect1):
+		print("Creating wave 1, part ", i + 1)
+		
 		# Каждая зона создаёт свою подволну; create_rectangle_wave сама распределяет нагрузку
 		create_rectangle_wave(area_w1_rect01)
 		create_rectangle_wave(area_w1_rect02)
@@ -102,17 +141,23 @@ func _on_timer_create_wave_01_timeout() -> void:
 		create_rectangle_wave(area_w1_rect04)
 
 		# Ждём появления мобов (таймер отвечает за интервалы между партиями в волне)
+		print("Waiting for spawn timer...")
 		timer_spawn_wave_01.start()
 		await timer_spawn_wave_01.timeout
 
 	# После всех повторов — перезапускаем таймер создания волны (если нужно)
+	print("Restarting wave 1 timer")
 	timer_create_wave_01.start()
 
 # Создаёт радиальную волну; распределяет нагрузку по кадрам (каждые 10 мобов)
 func create_radial_wave(radial_spawn: CollisionShape2D) -> void:
 	var circle: CircleShape2D = radial_spawn.shape
 	if circle == null:
+		print("No circle shape found")
 		return
+		
+	print("Creating radial wave with radius: ", circle.radius)
+	
 	var r: float = circle.radius
 	var step: float = TAU / float(count_mob_spawn_radial)
 	var start: float = 0.0
@@ -137,8 +182,19 @@ func create_radial_wave(radial_spawn: CollisionShape2D) -> void:
 
 # Таймер для радиальной волны; создаёт несколько повторов волны с интервалом
 func _on_timer_create_wave_02_timeout() -> void:
+	print("Wave 2 timer triggered")
+	
 	for i in range(count_wave_rad2):
+		print("Creating wave 2, part ", i + 1)
 		create_radial_wave(area_w2_rad01)
 		timer_spawn_wave_02.start()
 		await timer_spawn_wave_02.timeout
+		
+	print("Restarting wave 2 timer")
 	timer_create_wave_02.start()
+
+# Функция для ручного запуска волны (для тестирования)
+func _input(event):
+	if event.is_action_pressed("ui_accept"):  # Нажатие пробела
+		print("Manual spawn triggered")
+		spawn_mob(Vector2(100, 100))

@@ -2,74 +2,6 @@ extends Node
 
 signal player_leveled_up # глобальный сигнал прокачки
 
-
-#var spend_up = {
-	#"current_health":{
-		#"value": 100,
-		#"max_value_player": "max_health",
-		#"title": "Восполнить здоровье",
-		#"description": "Восполняет здоровье на 100 единиц"
-	#},
-	##"HP_L":{
-		##"value": 200,
-		##"max_value_player": "max_health",
-		##"title": "Восполнить здоровье",
-		##"description": "Восполняет здоровье на 200 единиц"
-	##},
-#}
-#
-##Храним уровни прокачки для каждого апгрейда
-#var upgrade_levels = {
-	#"max_health": 0, # текущий уровень прокачки здоровья
-	#"max_speed": 0, # текущий уровень прокачки скорости
-#}
-#
-##Настройка апгрейдов, на каждом уровне - разные бонусы
-#var upgrades = {
-	#"max_health":[ #уровни прокачки хп
-		#{
-			#"level":1,
-			#"value":20,
-			#"title": "Максимальное здоровье",
-			#"description": "Повышает максимальное здоровье на 20 единиц"
-		#}, #первый уровень прокачки здоровья
-		#{
-			#"level":2,
-			#"value":30,
-			#"title": "Максимальное здоровье",
-			#"description": "Повышает максимальное здоровье на 30 единиц"
-			#}, #второй уровень прокачки здоровья
-		#{
-			#"level":3,
-			#"value":45,
-			#"title": "Максимальное здоровье",
-			#"description": "Повышает максимальное здоровье на 45 единиц"
-			#}, #и тд
-	#],
-	#"max_speed":[ #уровни прокачки скорости
-		#{
-			#"level":1,
-			#"value":5,
-			#"title": "Максимальная скорость",
-			#"description": "Повышает максимальную скорость передвижения на 5 единиц"
-			#}, #первый уровень прокачки скорости
-		#{
-			#"level":2,
-			#"value":7,
-			#"title": "Максимальная скорость",
-			#"description": "Повышает максимальную скорость передвижения ещё на 7 единиц"
-			#}, #второй уровень прокачки скорости
-		#{
-			#"level":3, 
-			#"value":10,
-			#"title": "Максимальная скорость",
-			#"description": "Повышает максимальную скорость передвижения ещё на 10 единиц"
-			#}, #и тд
-			#
-	#],
-#}
-
-
 #Харакетеристики собираемых предметов
 var stats_collectibles = {
 	"max_speed" : 300, #скорость предмета
@@ -170,7 +102,6 @@ var enemy_spawner = {
 func _ready() -> void:
 	pass # Replace with function body.
 
-
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta) -> void:
 	pass
@@ -184,28 +115,7 @@ func check_level_up():
 		stats_player["current_xp"] -= xp_needed # вычитаем потраченный опыт
 		stats_player["xp_to_next_level"] = round(calculate_xp_to_next(stats_player["level"])) #round(xp_needed * 1.8) # увеличиваем порог
 		
-		player_leveled_up.emit() #отправляем сигнал игроку и всем, кто подписан на сигнал, новый синтаксис передачи сигнала
+		player_leveled_up.emit() #отправляем сигнал игроку и всех, кто подписан на сигнал, новый синтаксис передачи сигнала
 
 func calculate_xp_to_next(level: int) -> int: #функция расчета повышения уровня
 	return int(50 * pow(level, 1.5))
-
-
-
-
-##Функция повышения уровня
-#func apply_upgrade (id: String) -> void:
-	#var current_level_upgrades = upgrade_levels.get(id, 0) #Получаем текущий уровень прокачки, 0 ставится каждый раз вначале
-	#
-	#if current_level_upgrades < upgrades[id].size(): #Если есть дальнейшие уровни прокачки
-		#var upgrade_data = upgrades[id][current_level_upgrades] #То мы загружаем нужную переменную
-		#stats_player[id] += upgrade_data ["value"] #Прибавляем значение уровня улучшения к характеристике игрока
-		#upgrade_levels[id] += 1 #Повышаем уровень апгрейда
-#
-##Функция получения стимуляторов, когда закончились карточки улучшения
-#func apply_spend_up (id: String) -> void:
-	#var spend_up_data = spend_up[id] #То мы загружаем нужную переменную
-	#stats_player[id] += spend_up_data ["value"] #Прибавляем значение стимулятора к характеристике игрока
-	#print("Здоровье повышено на ", spend_up_data ["value"], ". Текущее здоровье ", stats_player[id])
-	#if stats_player[id] > stats_player[spend_up_data ["max_value_player"]]:
-		#stats_player[id] = stats_player[spend_up_data ["max_value_player"]]
-	
