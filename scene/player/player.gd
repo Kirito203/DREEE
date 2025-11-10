@@ -80,9 +80,9 @@ func state_hit():
 	
 	is_processing_hit = true #Переменная от спама урона в процессе получения удара
 	var current_health_local = GameStats.stats_player["current_health"]
-	print("Текущее здоровье ", current_health_local)
+	#print("Текущее здоровье ", current_health_local)
 	current_health_local -= amount #Получаем урон
-	print("Игрок получил урон. Здоровье:", current_health_local) 
+	#print("Игрок получил урон. Здоровье:", current_health_local) 
 	GameStats.stats_player["current_health"] = current_health_local #Передаю текущее здоровье в GameStats
 	
 	if current_health_local > 0:
