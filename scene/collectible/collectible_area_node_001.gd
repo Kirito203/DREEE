@@ -1,8 +1,8 @@
 extends Area2D
 
 var tween: Tween
-var move_speed: float = GameStats.stats_collectibles["max_speed"]
-var xp_up = GameStats.stats_collectibles["xp_up_low"]
+var move_speed: float = 300.0  # Значение по умолчанию
+var xp_up: int = 20  # Значение по умолчанию
 # скорость притягивания — задаётся в инспекторе
 
 var target_player: Node2D = null 
@@ -11,7 +11,13 @@ var target_player: Node2D = null
 var collected := false
 
 func _ready() -> void:
-	pass
+	# Получаем значения из GameStats, если он доступен
+	_update_stats_from_gamestats()
+
+func _update_stats_from_gamestats() -> void:
+	if GameStats and GameStats.stats_collectibles:
+		move_speed = float(GameStats.stats_collectibles.get("max_speed", 300))
+		xp_up = int(GameStats.stats_collectibles.get("xp_up_low", 20))
 
 func _process(delta): # вызывается каждый кадр
 	if collected:
@@ -32,18 +38,24 @@ func _on_body_entered(body: Node2D) -> void:
 
 func animate_and_destroy():
 	collected = true
-	var par = create_tween() # создаём новый tween
 	
-		# Прибавляем опыт игроку
-	GameStats.stats_player["current_xp"] += xp_up 
+	# Обновляем статы перед использованием
+	_update_stats_from_gamestats()
+	
+	# Прибавляем опыт игроку
+	if GameStats and GameStats.stats_player:
+		GameStats.stats_player["current_xp"] += xp_up 
+		# Проверяем, достиг ли уровень апгрейда
+		GameStats.check_level_up()
+	else:
+		print("GameStats not available for XP collection")
 
-	# Проверяем, достиг ли уровень апгрейда
-	GameStats.check_level_up()
-
+	var tween_instance = create_tween() # создаём новый tween
+	
 	# одновременно уменьшаем и поднимаем
-	par.tween_property(self, "position:y", position.y - 80, 0.2)
-	par.tween_property(self, "scale", scale * 0.3, 0.1)
+	tween_instance.tween_property(self, "position:y", position.y - 80, 0.2)
+	tween_instance.tween_property(self, "scale", scale * 0.3, 0.1)
 
 	# затем — задержка и удаление
-	par.tween_interval(0.3)
-	par.tween_callback(Callable(self, "queue_free"))
+	tween_instance.tween_interval(0.3)
+	tween_instance.tween_callback(queue_free)

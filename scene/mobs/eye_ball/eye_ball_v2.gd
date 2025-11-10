@@ -31,10 +31,16 @@ var sleep_radius: float = 1400.0 # вне радиуса моб «спит»
 var tick_slot: int = randi() % 3 # моб обновляет AI 1 раз в 3 кадра
 var tick_counter: int = 0
 
+# Для хранения ссылки на сцену
+var main_scene: Node
+
 func _ready() -> void:
 	_update_stats_from_gamestats()
 	if player_ref == null:
 		player_ref = get_tree().get_first_node_in_group("Player") as Node2D
+	
+	# Сохраняем ссылку на основную сцену
+	main_scene = get_tree().current_scene
 
 func _update_stats_from_gamestats() -> void:
 	# Берем статы напрямую из GameStats
@@ -58,8 +64,6 @@ func on_spawn_activated() -> void:
 		hitbox_collision.disabled = false
 	if anim_player:
 		anim_player.stop()
-	
-	print("Mob activated at position: ", global_position)
 
 func _physics_process(delta: float) -> void:
 	# Усыпление по дистанции до игрока
@@ -168,17 +172,23 @@ func _state_death() -> void:
 	if anim_player:
 		anim_player.play("Death")
 	velocity = Vector2.ZERO
+	
 	if anim_player:
 		await anim_player.animation_finished
+	
 	# шанс дропа
 	if collectible_scene != null and randf() < 0.8:
 		_spawn_collectible()
+	
 	_despawn_or_free()
 
 func _spawn_collectible() -> void:
+	var collectible_scene = preload("res://scene/collectible/collectible_001.tscn")
 	var c := collectible_scene.instantiate()
-	if c:
-		var parent := get_parent() if get_parent() != null else get_tree().current_scene
+	
+	# Используем тот же родительский нод, что и у моба
+	var parent = get_parent()
+	if parent and is_instance_valid(parent):
 		parent.add_child(c)
 		c.global_position = global_position
 
@@ -196,15 +206,19 @@ func _despawn_or_free() -> void:
 	# уменьшить счётчик мобов
 	if GameStats and GameStats.enemy_spawner and GameStats.enemy_spawner.has("count_mobs_in_screen"):
 		GameStats.enemy_spawner["count_mobs_in_screen"] = max(0, int(GameStats.enemy_spawner["count_mobs_in_screen"]) - 1)
-		print("Mob despawned. Total mobs: ", GameStats.enemy_spawner["count_mobs_in_screen"])
 
 	# вернуть в пул
 	if MobPool and MobPool.has_method("return_pool"):
-		if get_parent():
-			get_parent().remove_child(self)
+		# УДАЛЯЕМ из группы перед возвратом в пул
+		remove_from_group("Enemies")
+		
+		# Вызываем return_pool, который сам удалит из родителя
 		MobPool.return_pool(self)
 		_reset_for_reuse()
 	else:
+		# Если пула нет, удаляем обычным способом
+		if get_parent():
+			get_parent().remove_child(self)
 		queue_free()
 
 func _reset_for_reuse() -> void:

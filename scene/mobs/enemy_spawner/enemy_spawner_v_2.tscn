@@ -10,6 +10,9 @@ radius = 535.113
 
 [node name="Enemy_spawner_v2" type="Node2D"]
 script = ExtResource("1_kiwo8")
+count_mob_spawn_rectangle = 200
+count_wave_rect1 = 4
+enable_dynamic_spawning = true
 
 [node name="Area_spawn_wave_01" type="Area2D" parent="."]
 
