@@ -24,6 +24,7 @@ glow_intensity = 8.0
 [node name="Enviroments" type="Node" parent="."]
 
 [node name="ChunkGenerator" parent="Enviroments" instance=ExtResource("1_mvwwc")]
+visible = false
 chunk_variants = Array[PackedScene]([ExtResource("2_yt5y6"), ExtResource("3_mvwwc")])
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="Enviroments"]
