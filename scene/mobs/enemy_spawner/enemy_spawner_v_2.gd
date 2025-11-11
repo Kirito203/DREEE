@@ -17,15 +17,16 @@ extends Node2D
 @onready var timer_spawn_wave_01 = $Area_spawn_wave_01/Timer_spawn_wave_01
 @onready var timer_create_wave_01 = $Area_spawn_wave_01/Timer_create_wave_01
 
-
 @export_category("Настройка волн")
-# Параметры: сколько мобов в одной прямоугольной волне и сколько раз повторить
+## Количество мобов в одной волне из прямоугольных зон
 @export var count_mob_spawn_rectangle: int = 20
+## Сколько раз повторить волну из прямоугольных зон
 @export var count_wave_rect1: int = 2
 
-@export_category("Ограничение колв-ва мобов")
-# Ограничение общего числа мобов и текущий счётчик (берём из GameStats)
+@export_category("Ограничение количества мобов")
+## Максимальное количество мобов на экране
 @export var max_count_mobs : int = 200
+## Текущее количество мобов на экране (автоматически обновляется)
 @export var count_mobs_in_screen: int = 0
 
 # Зоны для волны 2 (радиальная)
@@ -34,7 +35,9 @@ extends Node2D
 @onready var timer_spawn_wave_02 = $Area_spawn_wave_02/Timer_spawn_wave_02
 @onready var timer_create_wave_02 = $Area_spawn_wave_02/Timer_create_wave_02
 
+## Количество мобов в радиальной зоне (центральном круге)
 @export var count_mob_spawn_radial: int = 30
+## Сколько раз повторить радиальную волну
 @export var count_wave_rad2: int = 5
 
 # Настройка батча: сколько мобов спавним за один кадр при создании волны
@@ -42,15 +45,21 @@ const SPAWN_BATCH_SIZE: int = 6
 
 # --- Optimization Settings ---
 @export_category("Оптимизация спавна")
+## Максимальное количество мобов, которых можно заспавнить за один кадр
 @export var max_spawns_per_frame: int = 5
-@export var enable_dynamic_spawning: bool = false # Временно отключаем для теста
+## Включить умный спавн (только на видимой территории)
+@export var enable_dynamic_spawning: bool = false
 
 # --- Новые настройки для спавна перед игроком ---
-@export_category("Для спавна перед игроком")
+@export_category("Спавн перед игроком")
+## Включить спавн мобов перед игроком когда он убегает
 @export var enable_front_spawn: bool = true
-@export var front_spawn_distance: float = 400.0  # Дистанция перед игроком для спавна
-@export var front_spawn_width: float = 300.0     # Ширина области спавна перед игроком
-@export var front_spawn_chance: float = 0.3      # Шанс спавна моба перед игроком
+## На каком расстоянии перед игроком появляются мобы
+@export var front_spawn_distance: float = 400.0
+## Ширина области спавна перед игроком
+@export var front_spawn_width: float = 300.0
+## Вероятность появления моба перед игроком (ккоэффициент от 0 до 1)
+@export var front_spawn_chance: float = 0.7
 
 var current_spawns_this_frame: int = 0
 var player_ref: Node2D = null
@@ -71,7 +80,7 @@ func _process(_delta):
 	# Сбрасываем счетчик спавнов каждый кадр
 	current_spawns_this_frame = 0
 
-# Спавнит моба через пул; обновляет GameStats
+## Основная функция спавна моба в указанную позицию
 func spawn_mob(world_spawn_point: Vector2) -> void:
 	# Проверяем, что мы в дереве сцены
 	if not is_inside_tree():
@@ -114,7 +123,7 @@ func spawn_mob(world_spawn_point: Vector2) -> void:
 
 # --- НОВЫЕ ФУНКЦИИ ДЛЯ РАЗНОСТОРОННЕГО СПАВНА ---
 
-# Создает волну из СЛУЧАЙНЫХ прямоугольников вокруг игрока
+## Создает волну мобов из случайных прямоугольных зон вокруг игрока
 func create_random_rectangle_wave() -> void:
 	if player_ref == null:
 		player_ref = get_tree().get_first_node_in_group("Player") as Node2D
@@ -158,7 +167,7 @@ func _get_random_point_in_rectangle(rectangle_spawn: CollisionShape2D) -> Vector
 
 # --- НОВЫЕ ФУНКЦИИ ДЛЯ СПАВНА ПЕРЕД ИГРОКОМ ---
 
-# Создает мобов перед игроком (в направлении его движения)
+## Создает мобов перед игроком в направлении его движения
 func create_front_spawn_wave() -> void:
 	if player_ref == null or not enable_front_spawn:
 		return
@@ -208,7 +217,7 @@ func _get_front_spawn_point(direction: Vector2) -> Vector2:
 
 # --- КОМБИНИРОВАННЫЕ ВОЛНЫ ---
 
-# Комбинированная волна: мобы со всех сторон + перед игроком
+## Создает комбинированную волну: мобы со всех сторон + перед игроком
 func create_combined_wave() -> void:
 	var spawned_in_frame: int = 0
 	
@@ -253,7 +262,7 @@ func create_combined_wave() -> void:
 
 # --- ПЕРЕРАБОТАННЫЕ СУЩЕСТВУЮЩИЕ ФУНКЦИИ ---
 
-# Обрабатывает таймер создания волны 1 — теперь использует комбинированную волну
+## Автоматически вызывается при срабатывании таймера волны 1
 func _on_timer_create_wave_01_timeout() -> void:
 	for i in range(count_wave_rect1):
 		# Используем комбинированную волну вместо фиксированных прямоугольников
@@ -266,7 +275,7 @@ func _on_timer_create_wave_01_timeout() -> void:
 	# Перезапускаем таймер
 	timer_create_wave_01.start()
 
-# Создаёт радиальную волну; распределяет нагрузку по кадрам
+## Создает радиальную волну мобов вокруг указанной зоны
 func create_radial_wave(radial_spawn: CollisionShape2D) -> void:
 	var circle: CircleShape2D = radial_spawn.shape
 	if circle == null:
@@ -294,7 +303,7 @@ func create_radial_wave(radial_spawn: CollisionShape2D) -> void:
 	if spawned_in_frame > 0:
 		await get_tree().process_frame
 
-# Таймер для радиальной волны
+## Автоматически вызывается при срабатывании таймера волны 2
 func _on_timer_create_wave_02_timeout() -> void:
 	for i in range(count_wave_rad2):
 		create_radial_wave(area_w2_rad01)

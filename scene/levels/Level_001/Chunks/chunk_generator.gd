@@ -1,168 +1,115 @@
-extends Node2D
+extends Node2D # корневой узел генератора обычных чанков
 
-@export var chunk_variants: Array[PackedScene] = []
-@export var chunk_size := Vector2i(1600, 1600)
-@export var debug_log := false
-@export var keep_radius := Vector2i(2, 2)
-@export var max_spawns_per_tick := 2
-@export var unload_enabled := true
+@export var chunk_variants: Array[PackedScene] = [] # список шаблонов обычных чанков
+@export var chunk_size := Vector2i(1600, 1600) # размер одного чанка
+@export var debug_log := false # включить подробные логи для отладки  # ИЗМЕНИЛ добавил флаг ранее
 
-@onready var player: Node2D = get_tree().get_first_node_in_group("Player")
+@export var keep_radius := Vector2i(2, 2) # радиус окна загрузки по чанкам
+@export var max_spawns_per_tick := 1 # максимум спавнов за кадр
+@export var unload_enabled := true # включить выгрузку дальних чанков
 
-var chunk_queue: Array[Vector2i] = []
-var is_spawning_chunk: bool = false
-var loaded_chunks: Dictionary = {}
-var boss_markers_manager: Node = null
-var _reserved_cache_ready: bool = false
-var _reserved_set: Dictionary = {}
+@onready var player: Node2D = get_tree().get_first_node_in_group("Player") # ссылка на игрока с типом  # ИЗМЕНИЛ добавил тип
 
-# Оптимизации
-var _last_player_chunk: Vector2i = Vector2i.ZERO
-var _update_cooldown: float = 0.0
-var _update_interval: float = 0.1  # 100ms
+var chunk_queue: Array[Vector2i] = [] # очередь координат чанков на генерацию
+var is_spawning_chunk: bool = false # флаг, идёт ли генерация  # ИЗМЕНИЛ добавил тип
+var loaded_chunks: Dictionary = {} # словарь coord -> инстанс  # ИЗМЕНИЛ добавил тип Dictionary
+
+var boss_markers_manager: Node = null # кэш ссылки на менеджер арен
+
+var _reserved_cache_ready: bool = false # кэш готовности сета брони  # ИЗМЕНИЛ добавил тип
+var _reserved_set: Dictionary = {} # set зарезервированных чанков  # ИЗМЕНИЛ добавил тип Dictionary
 
 func _ready() -> void:
-	randomize()
-	# Сразу спавним начальные чанки
-	_force_initial_chunks()
+	randomize() # инициализируем генератор случайных чисел
 
-func _force_initial_chunks() -> void:
-	if player:
-		var player_chunk = _world_to_chunk(player.global_position)
-		_queue_window_around(player_chunk)
-		# Немедленно спавним несколько чанков
-		for i in range(min(3, chunk_queue.size())):
-			_spawn_chunk_from_queue()
-
-func _process(delta: float) -> void:
-	if player == null:
-		player = get_tree().get_first_node_in_group("Player")
-		return
-	
-	# Обновляем не каждый кадр
-	_update_cooldown -= delta
-	if _update_cooldown > 0:
-		return
-	_update_cooldown = _update_interval
-	
-	var player_chunk: Vector2i = _world_to_chunk(player.global_position)
-	
-	# Обновляем только если игрок переместился между чанками
-	if player_chunk != _last_player_chunk:
-		_last_player_chunk = player_chunk
+func _process(_delta: float) -> void:
+	if player == null: # если игрок не найден
+		return # выходим до следующего кадра
 		
-		if boss_markers_manager == null:
-			boss_markers_manager = get_tree().get_first_node_in_group("BossMarkersManager")
+	if boss_markers_manager == null: # если менеджер ещё не закэширован
+		boss_markers_manager = get_tree().get_first_node_in_group("BossMarkersManager") # ищем по группе
+		
+	if not _reserved_cache_ready and boss_markers_manager != null: # если кэш ещё не собран и менеджер есть
+		var ready_var = boss_markers_manager.get("reservation_ready") # читаем флаг из менеджера
+		if typeof(ready_var) == TYPE_BOOL and ready_var: # если готов
+			_reserved_set.clear() # очищаем сет
+			var arr = boss_markers_manager.get("reserved_chunks") # читаем массив координат
+			if arr is Array: # проверяем тип
+				for v in (arr as Array): # перебираем элементы
+					if v is Vector2i: # только Vector2i
+						_reserved_set[v] = true # кладём в множество
+			_reserved_cache_ready = true # помечаем кэш собран
 			
-		if not _reserved_cache_ready and boss_markers_manager != null:
-			var ready_var = boss_markers_manager.get("reservation_ready")
-			if typeof(ready_var) == TYPE_BOOL and ready_var:
-				_reserved_set.clear()
-				var arr = boss_markers_manager.get("reserved_chunks")
-				if arr is Array:
-					for v in arr:
-						if v is Vector2i:
-							_reserved_set[v] = true
-				_reserved_cache_ready = true
-		
-		_queue_window_around(player_chunk)
-		
-		if unload_enabled:
-			_unload_far_chunks(player_chunk)
+	var player_chunk_pos: Vector2i = _world_to_chunk(player.global_position) # вычисляем чанк игрока  # ИЗМЕНИЛ задал тип
 	
-	# Спавним чанки из очереди
-	var spawns_left: int = max_spawns_per_tick
-	while spawns_left > 0 and chunk_queue.size() > 0 and not is_spawning_chunk:
-		_spawn_chunk_from_queue()
-		spawns_left -= 1
+	_queue_window_around(player_chunk_pos) # ставим недостающие чанки в очередь
+	
+	if unload_enabled: # если включена выгрузка
+		_unload_far_chunks(player_chunk_pos) # выгружаем дальние чанки
+		
+	var spawns_left: int = max(1, max_spawns_per_tick) # лимит спавнов как int  # ИЗМЕНИЛ явный тип int
+	while spawns_left > 0 and chunk_queue.size() > 0 and not is_spawning_chunk: # пока можно спавнить
+		_spawn_chunk_from_queue() # создаём один чанк
+		spawns_left -= 1 # уменьшаем лимит
 
 func _spawn_chunk_from_queue() -> void:
-	is_spawning_chunk = true
+	is_spawning_chunk = true # включаем флаг генерации
 	
-	var coord: Vector2i = chunk_queue.pop_front()
+	var coord: Vector2i = chunk_queue.pop_front() # берём координату из очереди
 	
-	if _reserved_cache_ready and _reserved_set.has(coord):
-		if debug_log: 
-			print("spawn skip reserved ", coord)
-		is_spawning_chunk = false
-		return
+	if _reserved_cache_ready and _reserved_set.has(coord): # если координата забронирована ареной
+		if debug_log: print("spawn skip reserved ", coord) # отладочный лог
+		is_spawning_chunk = false # снимаем флаг
+		return # выходим без генерации
 		
-	if chunk_variants.is_empty():
-		if debug_log: 
-			print("no chunk_variants, skip spawn")
-		is_spawning_chunk = false
-		return
+	if chunk_variants.is_empty(): # если нет обычных шаблонов
+		if debug_log: print("no chunk_variants, skip spawn") # отладочный лог
+		is_spawning_chunk = false # снимаем флаг
+		return # выходим
 		
-	var random_index: int = randi() % chunk_variants.size()
-	var chunk_scene: PackedScene = chunk_variants[random_index]
-	var chunk_instance: Node2D = chunk_scene.instantiate() as Node2D
-	
-	if chunk_instance == null:
-		if debug_log: 
-			print("instantiate failed at ", coord)
-		is_spawning_chunk = false
-		return
+	var random_index: int = randi() % chunk_variants.size() # выбираем случайный индекс шаблона как int  # ИЗМЕНИЛ явный тип int
+	var chunk_scene: PackedScene = chunk_variants[random_index] # берём сцену по индексу
+	var chunk_instance: Node2D = chunk_scene.instantiate() as Node2D # создаём инстанс и приводим к Node2D
+	if chunk_instance == null: # проверяем инстанс
+		if debug_log: print("instantiate failed at ", coord) # лог ошибки
+		is_spawning_chunk = false # снимаем флаг
+		return # выходим
 		
-	add_child(chunk_instance)
-	chunk_instance.position = Vector2(coord.x * chunk_size.x, coord.y * chunk_size.y)
-	loaded_chunks[coord] = chunk_instance
+	add_child(chunk_instance) # добавляем чанк в сцену
+	chunk_instance.position = Vector2(coord.x * chunk_size.x, coord.y * chunk_size.y) # ставим по сетке как Vector2  # ИЗМЕНИЛ явное Vector2
+	loaded_chunks[coord] = chunk_instance # запоминаем созданный чанк
 	
-	if debug_log: 
-		print("spawned chunk at ", coord, " world_pos ", chunk_instance.global_position)
+	if debug_log: print("spawned chunk at ", coord, " world_pos ", chunk_instance.global_position) # отладочный лог
 	
-	# Убираем await - он вызывает фризы
-	call_deferred("_finish_spawn")
+	await get_tree().process_frame # ждём один кадр
+	is_spawning_chunk = false # снимаем флаг генерации
 
-func _finish_spawn() -> void:
-	is_spawning_chunk = false
+func _queue_window_around(center_coord: Vector2i) -> void: # утилита постановки окна в очередь
+	for x in range(-keep_radius.x, keep_radius.x + 1): # проходим окно по X
+		for y in range(-keep_radius.y, keep_radius.y + 1): # проходим окно по Y
+			var coord: Vector2i = center_coord + Vector2i(x, y) # координата проверяемого чанка  # ИЗМЕНИЛ явный тип Vector2i
+			if _reserved_cache_ready and _reserved_set.has(coord): # если чанк зарезервирован
+				if debug_log: print("queue skip reserved ", coord) # отладочный лог
+				continue # не ставим в очередь
+			if not loaded_chunks.has(coord) and not chunk_queue.has(coord): # если нет и не в очереди
+				chunk_queue.append(coord) # ставим в очередь
 
-func _queue_window_around(center_coord: Vector2i) -> void:
-	for x in range(-keep_radius.x, keep_radius.x + 1):
-		for y in range(-keep_radius.y, keep_radius.y + 1):
-			var coord: Vector2i = center_coord + Vector2i(x, y)
-			if _reserved_cache_ready and _reserved_set.has(coord):
-				if debug_log: 
-					print("queue skip reserved ", coord)
-				continue
-			if not loaded_chunks.has(coord) and not chunk_queue.has(coord):
-				chunk_queue.append(coord)
-				if debug_log: 
-					print("queued chunk ", coord)
+func _unload_far_chunks(center_coord: Vector2i) -> void: # выгрузка дальних чанков
+	var to_free: Array[Vector2i] = [] # список на удаление
+	for coord in loaded_chunks.keys(): # обходим все загруженные
+		var dx: int = abs(coord.x - center_coord.x) # расстояние по X как int  # ИЗМЕНИЛ явный тип int
+		var dy: int = abs(coord.y - center_coord.y) # расстояние по Y как int  # ИЗМЕНИЛ явный тип int
+		if dx > keep_radius.x or dy > keep_radius.y: # если за окном
+			to_free.append(coord) # помечаем к удалению
+	for coord in to_free: # удаляем помеченные
+		var node: Node = loaded_chunks.get(coord, null) as Node # берём узел с типом  # ИЗМЕНИЛ добавил тип
+		if node != null and is_instance_valid(node): # проверяем валидность
+			node.queue_free() # удаляем из сцены
+		loaded_chunks.erase(coord) # убираем из словаря
+		if debug_log: print("unloaded chunk ", coord) # отладочный лог
 
-func _unload_far_chunks(center_coord: Vector2i) -> void:
-	var to_free: Array[Vector2i] = []
-	for coord in loaded_chunks.keys():
-		var dx: int = abs(coord.x - center_coord.x)
-		var dy: int = abs(coord.y - center_coord.y)
-		if dx > keep_radius.x or dy > keep_radius.y:
-			to_free.append(coord)
-			
-	for coord in to_free:
-		var node: Node = loaded_chunks[coord]
-		if is_instance_valid(node):
-			node.queue_free()
-		loaded_chunks.erase(coord)
-		if debug_log: 
-			print("unloaded chunk ", coord)
-
-func _world_to_chunk(world_pos: Vector2) -> Vector2i:
-	return Vector2i(
-		floor(world_pos.x / chunk_size.x),
-		floor(world_pos.y / chunk_size.y)
+func _world_to_chunk(world_pos: Vector2) -> Vector2i: # перевод мира в индекс чанка
+	return Vector2i( # возвращаем индекс
+		int(floor(world_pos.x / float(chunk_size.x))), # индекс по X
+		int(floor(world_pos.y / float(chunk_size.y)))  # индекс по Y
 	)
-
-# Дебаг функции
-func get_debug_info() -> Dictionary:
-	return {
-		"loaded_chunks": loaded_chunks.size(),
-		"chunk_queue": chunk_queue.size(),
-		"player_chunk": _last_player_chunk,
-		"is_spawning": is_spawning_chunk
-	}
-
-# Принудительно обновить все чанки вокруг игрока
-func force_update_around_player() -> void:
-	if player:
-		var player_chunk = _world_to_chunk(player.global_position)
-		_last_player_chunk = Vector2i(999, 999)  # Сбрасываем кэш
-		_queue_window_around(player_chunk)
