@@ -1,9 +1,10 @@
-[gd_scene load_steps=15 format=3 uid="uid://bh0q2t7j3qb7h"]
+[gd_scene load_steps=17 format=3 uid="uid://bh0q2t7j3qb7h"]
 
 [ext_resource type="PackedScene" uid="uid://dkjaeh2f6al3e" path="res://scene/levels/Level_001/Chunks/chunk_generator.tscn" id="1_mvwwc"]
 [ext_resource type="PackedScene" uid="uid://btq4fy5ua2nmw" path="res://scene/player/player.tscn" id="2_oqfqr"]
 [ext_resource type="PackedScene" uid="uid://cugdtqfggtr4x" path="res://scene/levels/Level_001/Chunks/chunk_template_001.tscn" id="2_yt5y6"]
 [ext_resource type="PackedScene" uid="uid://cxr7avd6hkkfb" path="res://scene/levels/Level_001/Chunks/chunk_template_002.tscn" id="3_mvwwc"]
+[ext_resource type="FontFile" uid="uid://cjokbv0q3hkcl" path="res://resources/shrifts/LCD16x2Display-Regular.otf" id="5_b0rlp"]
 [ext_resource type="Texture2D" uid="uid://d05srxlq0wtr" path="res://scene/UI/XP/Honor_bar_under.png" id="8_xh8cu"]
 [ext_resource type="PackedScene" uid="uid://dqg1eynftmv2p" path="res://scene/levels/Menu/level_up_screen.tscn" id="9_12d63"]
 [ext_resource type="Texture2D" uid="uid://sqho08n5288w" path="res://scene/UI/XP/Honor_bar_over.png" id="9_hso7i"]
@@ -18,6 +19,46 @@
 background_mode = 3
 glow_enabled = true
 glow_intensity = 8.0
+
+[sub_resource type="GDScript" id="GDScript_jmnj1"]
+script/source = "extends CanvasLayer
+
+@onready var timer_label: Label = $TimerLabel
+@export var font: FontFile
+
+@export var game_time: float = 0.0
+@export var max_game_time: float = 2400.0  # 40 минут в секундах
+
+func _ready() -> void:
+	if font:
+		timer_label.add_theme_font_override(\"font\", font)
+	update_display()
+
+func _process(delta: float) -> void:
+	game_time += delta
+	update_display()
+	
+	# Проверка окончания игры
+	if game_time >= max_game_time:
+		end_game()
+
+func update_display() -> void:
+	var minutes: int = int(game_time) / 60
+	var seconds: int = int(game_time) % 60
+	timer_label.text = \"%02d:%02d\" % [minutes, seconds]
+
+func end_game() -> void:
+	# Останавливаем игру
+	get_tree().paused = true
+	
+	# Показываем экран окончания игры
+	#var end_screen = preload(\"res://ui/end_screen.tscn\").instantiate()
+	#get_tree().root.add_child(end_screen)
+	
+	# Сохраняем статистику
+	if GameStats:
+		GameStats.final_game_time = game_time
+"
 
 [node name="Level_001" type="Node"]
 
@@ -47,6 +88,20 @@ blend_mode = 1
 range_layer_max = 1
 
 [node name="FX" type="Node" parent="."]
+
+[node name="Timer" type="CanvasLayer" parent="."]
+script = SubResource("GDScript_jmnj1")
+font = ExtResource("5_b0rlp")
+
+[node name="TimerLabel" type="Label" parent="Timer"]
+anchors_preset = -1
+anchor_left = 0.48333332
+anchor_top = 0.11851852
+anchor_right = 0.525
+anchor_bottom = 0.16111112
+offset_right = 3.0517578e-05
+grow_horizontal = 2
+metadata/_edit_use_anchors_ = true
 
 [node name="UI" type="CanvasLayer" parent="."]
 layer = 2

@@ -96,7 +96,12 @@ var stats_eye_ball = {
 var enemy_spawner = {
 	"max_count_mobs" = 200,
 	"count_mobs_in_screen" = 0,
+	"current_spawn_interval" = 3.0,
+	"game_time" = 0.0,
+	"max_game_time" = 2400.0
 }
+
+var final_game_time: float = 0.0
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:

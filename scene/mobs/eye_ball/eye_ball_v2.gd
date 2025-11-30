@@ -31,6 +31,11 @@ var sleep_radius: float = 1400.0 # вне радиуса моб «спит»
 var tick_slot: int = randi() % 3 # моб обновляет AI 1 раз в 3 кадра
 var tick_counter: int = 0
 
+#Деспавн улучшенныый
+@export var despawn_radius: float = 1500.0
+var relocation_timer: float = 0.0
+var relocation_interval: float = 1.0
+
 # Для хранения ссылки на сцену
 var main_scene: Node
 
@@ -78,6 +83,13 @@ func _physics_process(delta: float) -> void:
 			if not is_physics_processing():
 				_set_sleep(false)
 
+	# Проверка на необходимость релокации/деспавна
+	relocation_timer += delta
+	if relocation_timer >= relocation_interval:
+		relocation_timer = 0.0
+		_check_for_relocation()
+
+
 	# Knockback приоритетен
 	if is_knockback:
 		var motion: Vector2 = knock_dir * knock_speed * delta
@@ -111,6 +123,62 @@ func _physics_process(delta: float) -> void:
 	if death_flag and current_state != State.DEATH:
 		current_state = State.DEATH
 
+
+func _check_for_relocation() -> void:
+	if player_ref == null or death_flag:
+		return
+	
+	var distance_to_player = global_position.distance_to(player_ref.global_position)
+	
+	# Если моб слишком далеко от игрока - деспавним
+	if distance_to_player > despawn_radius:
+		_despawn_or_free()
+	
+	# Если моб сзади игрока и на достаточном расстоянии - перемещаем вперед
+	elif _is_behind_player() and distance_to_player > 800.0:
+		_relocate_to_front()
+
+func _is_behind_player() -> bool:
+	if player_ref == null:
+		return false
+	
+	var player_forward = Vector2.RIGHT
+	if player_ref is CharacterBody2D:
+		player_forward = player_ref.velocity.normalized()
+		if player_forward.length_squared() < 0.1:
+			# Если игрок стоит, используем направление взгляда
+			player_forward = Vector2(1, 0)
+	
+	var to_mob = (global_position - player_ref.global_position).normalized()
+	return player_forward.dot(to_mob) < -0.5
+
+func _relocate_to_front() -> void:
+	if player_ref == null:
+		return
+	
+	var player_forward = Vector2.RIGHT
+	if player_ref is CharacterBody2D:
+		player_forward = player_ref.velocity.normalized()
+		if player_forward.length_squared() < 0.1:
+			player_forward = Vector2(1, 0)
+	
+	# Новые координаты перед игроком
+	var spawn_distance = 600.0
+	var spawn_width = 400.0
+	
+	var base_point = player_ref.global_position + player_forward * spawn_distance
+	var perpendicular = Vector2(-player_forward.y, player_forward.x)
+	var width_offset = perpendicular * randf_range(-spawn_width * 0.5, spawn_width * 0.5)
+	
+	global_position = base_point + width_offset
+	
+	# Сбрасываем состояние
+	current_state = State.RUN
+	velocity = Vector2.ZERO
+	is_knockback = false
+	knock_speed = 0.0
+
+
 func _state_idle() -> void:
 	if player_ref == null:
 		player_ref = get_tree().get_first_node_in_group("Player") as Node2D
@@ -143,12 +211,24 @@ func _get_direction_to_player() -> Vector2:
 			return d.normalized()
 	return Vector2.ZERO
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, attack_source: Node2D = null) -> void:
 	if invincible or death_flag:
 		return
+	
+	# Проверяем расстояние до источника атаки
+	if attack_source:
+		var distance_to_attacker = global_position.distance_to(attack_source.global_position)
+		var max_attack_range = 200.0  # Максимальная дистанция атаки
+		
+		if distance_to_attacker > max_attack_range:
+			print("Mob too far from attack source: ", distance_to_attacker)
+			return
+	
 	health -= amount
+	
 	if anim_player:
 		anim_player.play("Hit")
+	
 	if health <= 0:
 		death_flag = true
 		current_state = State.DEATH

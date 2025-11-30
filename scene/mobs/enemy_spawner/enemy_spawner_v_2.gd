@@ -61,6 +61,29 @@ const SPAWN_BATCH_SIZE: int = 6
 ## Вероятность появления моба перед игроком (ккоэффициент от 0 до 1)
 @export var front_spawn_chance: float = 0.7
 
+
+@export_category("Wave Settings")
+## Начальный интервал спавна (секунды)
+@export var initial_spawn_interval: float = 3.0
+## Минимальный интервал спавна (секунды)
+@export var min_spawn_interval: float = 0.1
+## Скорость уменьшения интервала спавна
+@export var spawn_interval_decrease: float = 0.1
+## Интервал между прямоугольными волнами (секунды)
+@export var rectangle_wave_interval: float = 900.0  # 15 минут
+## Интервал между радиальными волнами (секунды)
+@export var radial_wave_interval: float = 540.0     # 9 минут
+## Максимальное количество мобов для "роя"
+@export var max_swarm_mobs: int = 500
+
+var current_spawn_interval: float = 3.0
+var game_timer: float = 0.0
+var rectangle_wave_timer: float = 0.0
+var radial_wave_timer: float = 0.0
+var spawn_timer: float = 0.0
+var mobs_spawned_in_current_wave: int = 0
+
+
 var current_spawns_this_frame: int = 0
 var player_ref: Node2D = null
 
@@ -69,6 +92,8 @@ func _ready() -> void:
 	_update_stats_from_gamestats()
 	# Находим игрока
 	player_ref = get_tree().get_first_node_in_group("Player") as Node2D
+	
+	current_spawn_interval = initial_spawn_interval
 
 func _update_stats_from_gamestats() -> void:
 	# Берем статы напрямую из GameStats
@@ -76,11 +101,96 @@ func _update_stats_from_gamestats() -> void:
 		max_count_mobs = int(GameStats.enemy_spawner["max_count_mobs"])
 		count_mobs_in_screen = int(GameStats.enemy_spawner["count_mobs_in_screen"])
 
-func _process(_delta):
+func _process(delta: float) -> void:
 	# Сбрасываем счетчик спавнов каждый кадр
 	current_spawns_this_frame = 0
+	
+	# Обновляем таймеры
+	game_timer += delta
+	rectangle_wave_timer += delta
+	radial_wave_timer += delta
+	spawn_timer += delta
+	
+	# Постепенное уменьшение интервала спавна
+	if game_timer > 60.0:  # Каждую минуту ускоряем спавн
+		current_spawn_interval = max(min_spawn_interval, 
+			current_spawn_interval - spawn_interval_decrease)
+		game_timer = 0.0
+	
+	# Непрерывный спавн мобов
+	if spawn_timer >= current_spawn_interval:
+		spawn_timer = 0.0
+		_spawn_single_mob()
+	
+	# Прямоугольные волны каждые 15 минут
+	if rectangle_wave_timer >= rectangle_wave_interval:
+		rectangle_wave_timer = 0.0
+		_start_rectangle_wave()
+	
+	# Радиальные волны каждые 9 минут
+	if radial_wave_timer >= radial_wave_interval:
+		radial_wave_timer = 0.0
+		_start_radial_wave()
 
-## Основная функция спавна моба в указанную позицию
+func _spawn_single_mob() -> void:
+	if count_mobs_in_screen >= max_count_mobs:
+		return
+	
+	var spawn_point: Vector2
+	
+	# 70% шанс спавна перед игроком, 30% - случайно вокруг
+	if randf() < 0.7 and enable_front_spawn:
+		spawn_point = _get_front_spawn_point(_get_player_direction())
+	else:
+		var rectangles = [area_w1_rect01, area_w1_rect02, area_w1_rect03, area_w1_rect04]
+		var random_rect = rectangles[randi() % rectangles.size()]
+		spawn_point = _get_random_point_in_rectangle(random_rect)
+	
+	spawn_mob(spawn_point)
+
+func _start_rectangle_wave() -> void:
+	# Увеличиваем максимальное количество мобов для эффекта роя
+	var old_max = max_count_mobs
+	max_count_mobs = max_swarm_mobs
+	
+	# Спавним большую волну
+	for i in range(count_mob_spawn_rectangle * 3):
+		var rectangles = [area_w1_rect01, area_w1_rect02, area_w1_rect03, area_w1_rect04]
+		var random_rect = rectangles[randi() % rectangles.size()]
+		var spawn_point = _get_random_point_in_rectangle(random_rect)
+		
+		spawn_mob(spawn_point)
+		
+		# Ждем между спавнами для оптимизации
+		if i % SPAWN_BATCH_SIZE == 0:
+			await get_tree().process_frame
+	
+	# Возвращаем обычный лимит через небольшое время
+	await get_tree().create_timer(10.0).timeout
+	max_count_mobs = old_max
+
+func _start_radial_wave() -> void:
+	# Спавним радиальную волну
+	for i in range(count_mob_spawn_radial * 2):
+		create_radial_wave(area_w2_rad01)
+		await get_tree().process_frame
+
+func _get_player_direction() -> Vector2:
+	if player_ref == null:
+		return Vector2.RIGHT
+	
+	var player_velocity = Vector2.ZERO
+	if player_ref.has_method("get_velocity"):
+		player_velocity = player_ref.get_velocity()
+	elif player_ref is CharacterBody2D:
+		player_velocity = player_ref.velocity
+	
+	var move_direction = player_velocity.normalized()
+	if move_direction == Vector2.ZERO:
+		move_direction = Vector2(1, 0)
+	
+	return move_direction
+
 func spawn_mob(world_spawn_point: Vector2) -> void:
 	# Проверяем, что мы в дереве сцены
 	if not is_inside_tree():
@@ -96,6 +206,25 @@ func spawn_mob(world_spawn_point: Vector2) -> void:
 	
 	if count_mobs_in_screen >= max_count_mobs:
 		return
+
+	# --- ПРОВЕРКА СВОБОДНОГО МЕСТА ПЕРЕД СПАВНОМ ---
+	if not _is_spawn_position_clear(world_spawn_point):
+		# Пытаемся найти nearby позицию
+		var found_clear_position = false
+		for i in range(5):
+			var new_position = world_spawn_point + Vector2(
+				randf_range(-50, 50),
+				randf_range(-50, 50)
+			)
+			if _is_spawn_position_clear(new_position):
+				world_spawn_point = new_position
+				found_clear_position = true
+				break
+		
+		# Не нашли свободное место - пропускаем спавн
+		if not found_clear_position:
+			return
+	# --- КОНЕЦ ПРОВЕРКИ СВОБОДНОГО МЕСТА ---
 
 	# parent — контейнер для мобов; если его нет — используем текущую сцену
 	var parent = mobs_parent
@@ -120,6 +249,20 @@ func spawn_mob(world_spawn_point: Vector2) -> void:
 	count_mobs_in_screen += 1
 	GameStats.enemy_spawner["count_mobs_in_screen"] = count_mobs_in_screen
 	current_spawns_this_frame += 1
+
+# Добавьте эту функцию в класс spawner
+func _is_spawn_position_clear(position: Vector2, radius: float = 40.0) -> bool:
+	var space = get_world_2d().direct_space_state
+	var query = PhysicsShapeQueryParameters2D.new()
+	var circle = CircleShape2D.new()
+	circle.radius = radius
+	query.shape = circle
+	query.transform = Transform2D(0, position)
+	query.collision_mask = 0b1  # Маска для мобов
+	query.exclude = []  # Очищаем исключения
+	
+	var results = space.intersect_shape(query, 1)
+	return results.is_empty()
 
 # --- НОВЫЕ ФУНКЦИИ ДЛЯ РАЗНОСТОРОННЕГО СПАВНА ---
 
